@@ -22,6 +22,12 @@ spring:
             - Path=/api/auth/**
             filters:
             - StripPrefix=1
+          - id: mah-conc-supp-item-service
+            uri: lb://mah-conc-supp-item-service
+            predicates:
+            - Path=/api/units/**
+            filters:
+            - StripPrefix=1
 eureka:
   client:
     service-url:
