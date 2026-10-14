@@ -40,7 +40,8 @@ public class CorsConfig {
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/error").permitAll()
 						.requestMatchers("/api/auth/**").permitAll()
-						.requestMatchers("/api/units/**").permitAll())
+						.requestMatchers("/api/units/**").permitAll()
+						.requestMatchers("/api/items/**").permitAll())
 				.build();
 	}
 }

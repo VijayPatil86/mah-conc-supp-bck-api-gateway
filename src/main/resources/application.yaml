@@ -25,7 +25,7 @@ spring:
           - id: mah-conc-supp-item-service
             uri: lb://mah-conc-supp-item-service
             predicates:
-            - Path=/api/units/**
+            - Path=/api/units/**, /api/items/**
             filters:
             - StripPrefix=1
 eureka:
