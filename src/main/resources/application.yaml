@@ -28,6 +28,12 @@ spring:
             - Path=/api/units/**, /api/items/**
             filters:
             - StripPrefix=1
+          - id: mah-conc-supp-supplier-service
+            uri: lb://mah-conc-supp-supplier-service
+            predicates:
+            - Path=/api/suppliers/**
+            filters:
+            - StripPrefix=1
 eureka:
   client:
     service-url:
