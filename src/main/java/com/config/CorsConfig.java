@@ -42,6 +42,7 @@ public class CorsConfig {
 						.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/api/units/**").permitAll()
 						.requestMatchers("/api/items/**").permitAll()
+						.requestMatchers("/api/item-suppliers/**").permitAll()
 						.requestMatchers("/api/suppliers/**").permitAll())
 				.build();
 	}
