@@ -25,13 +25,19 @@ spring:
           - id: mah-conc-supp-item-service
             uri: lb://mah-conc-supp-item-service
             predicates:
-            - Path=/api/units/**, /api/items/**, /api/item-suppliers/**
+            - Path=/api/units/**, /api/items/**, /api/item-suppliers/**, /api/suppliers/*/items, /api/variants/**
             filters:
             - StripPrefix=1
           - id: mah-conc-supp-supplier-service
             uri: lb://mah-conc-supp-supplier-service
             predicates:
             - Path=/api/suppliers/**
+            filters:
+            - StripPrefix=1
+          - id: mah-conc-supp-bck-purchase-service
+            uri: lb://mah-conc-supp-bck-purchase-service
+            predicates:
+            - Path=/api/purchase-vouchers/**
             filters:
             - StripPrefix=1
 eureka:
