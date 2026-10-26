@@ -25,7 +25,7 @@ spring:
           - id: mah-conc-supp-item-service
             uri: lb://mah-conc-supp-item-service
             predicates:
-            - Path=/api/units/**, /api/items/**, /api/variants/**
+            - Path=/api/units/**, /api/items/**, /api/variants/**, /api/suppliers/**
             filters:
             - StripPrefix=1
           - id: mah-conc-supp-supplier-service
