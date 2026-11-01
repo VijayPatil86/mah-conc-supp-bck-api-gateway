@@ -37,7 +37,7 @@ spring:
           - id: mah-conc-supp-bck-purchase-service
             uri: lb://mah-conc-supp-bck-purchase-service
             predicates:
-            - Path=/api/purchase-vouchers/**
+            - Path=/api/purchase-vouchers/**, /api/vehicles/**
             filters:
             - StripPrefix=1
 eureka:
