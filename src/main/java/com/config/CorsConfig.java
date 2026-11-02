@@ -5,10 +5,12 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -37,15 +39,14 @@ public class CorsConfig {
 		return http
 				.csrf(AbstractHttpConfigurer::disable)
 				.cors(Customizer.withDefaults())
+				.sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
+						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/error").permitAll()
-						.requestMatchers("/api/auth/**").permitAll()
-						.requestMatchers("/api/units/**").permitAll()
-						.requestMatchers("/api/items/**").permitAll()
-						.requestMatchers("/api/suppliers/**").permitAll()
-						.requestMatchers("/api/purchase-vouchers/**").permitAll()
-						.requestMatchers("/api/variants/{variantId}/suppliers").permitAll()
-						.requestMatchers("/api/vehicles/**").permitAll())	// in-use
+						.requestMatchers("/api/auth/send-otp", "/api/auth/login").permitAll()
+						.requestMatchers("/api/**").authenticated()
+						.anyRequest().denyAll())
+				.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
 				.build();
 	}
 }
