@@ -10,8 +10,11 @@ app:
 server:
   port: 8001
 spring:
+  config:
+    import: file:C:/secure/mah-conc/eureka-client.properties
   application:
     name: mah-conc-supp-api-gateway
+
   threads:
     virtual:
       enabled: true
@@ -47,10 +50,26 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@localhost:8761/eureka
+      defaultZone: http://${eureka.username}:${eureka.password}@localhost:8761/eureka
   instance:
     instance-id: ${spring.application.name}:${server.port}
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.springframework.cloud.gateway: DEBUG
+    root: INFO
+    com: INFO
+    access: INFO
+    org.springframework.security: WARN
+    org.springframework.cloud.gateway: INFO
+    com.netflix.discovery: WARN
+    com.netflix.eureka: WARN
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: never
+  health:
+    diskspace:
+      threshold: 1GB
