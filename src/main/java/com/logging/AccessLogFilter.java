@@ -17,14 +17,16 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-@Order(Ordered.HIGHEST_PRECEDENCE + 10)   // outside Spring Security, so 401 and 403 are logged too
+@Order(Ordered.HIGHEST_PRECEDENCE + 10)     // outside Spring Security, so 401 and 403 are seen
 public class AccessLogFilter extends OncePerRequestFilter {
+
+    public static final String LOGGED = "gateway.failure.logged";
 
     private static final Logger access = LoggerFactory.getLogger("access");
     private static final Logger log = LoggerFactory.getLogger(AccessLogFilter.class);
     private static final long SLOW_MS = 3000;
-    private static final Set<String> SKIP = Set.of("/actuator/health", "/actuator/health/liveness",
-                                                   "/actuator/health/readiness");
+    private static final Set<String> SKIP = Set.of("/actuator/health",
+            "/actuator/health/liveness", "/actuator/health/readiness");
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -38,38 +40,31 @@ public class AccessLogFilter extends OncePerRequestFilter {
         long start = System.nanoTime();
         String traceId = MDC.get("traceId");
         if (traceId != null) {
-            res.setHeader("X-Trace-Id", traceId);          // lets support quote it from the browser
+            res.setHeader("X-Trace-Id", traceId);
         }
 
-        Throwable failure = null;
         try {
             chain.doFilter(req, res);
-        } catch (ServletException | IOException | RuntimeException e) {
-            failure = e;
-            throw e;
         } finally {
             long ms = (System.nanoTime() - start) / 1_000_000;
-            int status = (failure != null && res.getStatus() < 400) ? 500 : res.getStatus();
+            int status = res.getStatus();
             Object user = req.getAttribute(UserContextFilter.USER_ATTRIBUTE);
+            String route = req.getMethod() + " " + req.getRequestURI();     // path only, never the query string
 
-            // path only: the query string can hold search text and personal data
-            String line = String.format("%s %s -> %d %dms user=%s ip=%s trace=%s",
-                    req.getMethod(), req.getRequestURI(), status, ms,
-                    user == null ? "-" : user, clientIp(req), traceId == null ? "-" : traceId);
+            access.info("REQUEST {} status={} ms={} user={} ip={} trace={}",
+                    route, status, ms, user == null ? "-" : user, req.getRemoteAddr(),
+                    traceId == null ? "-" : traceId);
 
-            access.info(line);
-
-            if (status >= 500) {
-                log.error("Request failed: {}", line);
-            } else if (status == 401 || status == 403) {
-                log.warn("Request rejected: {}", line);
+            if (status == 401 || status == 403) {
+                log.warn("AUTH_REJECTED {} status={} ip={}", route, status, req.getRemoteAddr());
+            } else if (status == 404) {
+                log.warn("ROUTE_NOT_FOUND {} ip={}", route, req.getRemoteAddr());
+            } else if (status >= 500 && req.getAttribute(LOGGED) == null) {
+                // a service answered with a 5xx and nothing in the gateway threw
+                log.error("UPSTREAM_ERROR {} status={} ms={}", route, status, ms);
             } else if (ms > SLOW_MS) {
-                log.warn("Slow request: {}", line);
+                log.warn("REQUEST_SLOW {} ms={}", route, ms);
             }
         }
-    }
-
-    private String clientIp(HttpServletRequest req) {
-        return req.getRemoteAddr();     // behind a proxy, configure forward-headers-strategy instead
     }
 }
