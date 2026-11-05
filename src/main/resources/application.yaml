@@ -10,11 +10,14 @@ app:
 server:
   port: 8001
 spring:
+  http:
+    clients:
+      connect-timeout: 2000
+      read-timeout: 10000
   config:
     import: file:C:/secure/mah-conc/eureka-client.properties
   application:
     name: mah-conc-supp-api-gateway
-
   threads:
     virtual:
       enabled: true
@@ -63,6 +66,12 @@ logging:
     com.netflix.discovery: WARN
     com.netflix.eureka: WARN
 management:
+  tracing:
+    sampling:
+      probability: 1.0
+    export:
+      zipkin:
+        enabled: false
   endpoints:
     web:
       exposure:

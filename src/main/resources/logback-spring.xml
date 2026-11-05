@@ -6,7 +6,7 @@
     <springProperty scope="context" name="LOG_ROOT" source="LOG_DIR" defaultValue="C:/Users/Lenovo/logs/mah_conc_supp/"/>
 
     <property name="LOG_PATTERN"
-              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${APP}] [%X{traceId:-}] [%X{userId:-}] %logger{30} - %msg%n"/>
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${APP}] [%X{traceId:-},%X{spanId:-}] [%X{userId:-}] %logger{30} - %msg%n"/>
     <property name="ACCESS_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %msg%n"/>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
