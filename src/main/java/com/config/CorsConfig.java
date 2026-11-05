@@ -2,7 +2,9 @@ package com.config;
 
 import java.util.List;
 
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -31,6 +33,7 @@ public class CorsConfig {
 		corsConfiguration.setAllowedOrigins(allowedOrigins);
 		corsConfiguration.setAllowedMethods(allowedMethods);
 		corsConfiguration.setAllowedHeaders(List.of("*"));
+		corsConfiguration.setExposedHeaders(List.of("X-Trace-Id"));
 		corsConfiguration.setMaxAge(maxAge);
 		UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
 		src.registerCorsConfiguration("/**", corsConfiguration);
@@ -52,5 +55,11 @@ public class CorsConfig {
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
 				.addFilterAfter(new UserContextFilter(), BearerTokenAuthenticationFilter.class)
 				.build();
+	}
+
+	@Bean
+	ApplicationRunner tracerCheck(ObjectProvider<io.micrometer.tracing.Tracer> tracer) {
+	    return args -> org.slf4j.LoggerFactory.getLogger("startup")
+	        .info("Tracer present: {}", tracer.getIfAvailable() != null);
 	}
 }
