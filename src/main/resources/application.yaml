@@ -66,6 +66,9 @@ logging:
     com.netflix.discovery: WARN
     com.netflix.eureka: WARN
 management:
+  observations:
+    annotations:
+      enabled: true
   tracing:
     sampling:
       probability: 1.0
