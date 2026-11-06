@@ -71,7 +71,7 @@ management:
       probability: 1.0
     export:
       zipkin:
-        enabled: false
+        enabled: true
   endpoints:
     web:
       exposure:
