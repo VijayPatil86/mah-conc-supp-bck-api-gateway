@@ -50,6 +50,7 @@ public class CorsConfig {
 						.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 						.requestMatchers("/error").permitAll()
 						.requestMatchers("/api/auth/send-otp", "/api/auth/login").permitAll()
+						.requestMatchers("/api/internal/**").denyAll()
 						.requestMatchers("/api/**").authenticated()
 						.anyRequest().denyAll())
 				.oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
