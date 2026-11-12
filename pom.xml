@@ -10,7 +10,7 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.mah-conc-supp-api-gateway</groupId>
-	<artifactId>mah-conc-supp-api-gateway</artifactId>
+	<artifactId>api-gateway</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name />
 	<description />
@@ -76,16 +76,50 @@
 	</dependencyManagement>
 
 	<build>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven-jar-plugin.version}</version> <!-- Lock to 3.4.2
-				to bypass the bug -->
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.8.0</version>
+				<configuration>
+					<!-- 1. Location for THIRD-PARTY-NOTICES.txt -->
+					<outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+					<thirdPartyFilename>THIRD-PARTY-NOTICES.txt</thirdPartyFilename>
+
+					<!-- 2. Location where full license texts (like MPL 2.0)
+					will be downloaded -->
+					<licensesOutputDirectory>
+						${project.build.outputDirectory}/META-INF/licenses</licensesOutputDirectory>
+					<licensesOutputFile>
+						${project.build.outputDirectory}/META-INF/licenses/licenses.xml</licensesOutputFile>
+					<includeTransitiveDependencies>true</includeTransitiveDependencies>
+					<sortArtifactByName>true</sortArtifactByName>
+					<excludedScopes>test,provided</excludedScopes>
+					<useMissingFile>true</useMissingFile>
+				</configuration>
+				<executions>
+					<!-- Execution 1: Generates the summary list -->
+					<execution>
+						<id>generate-third-party-notices</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>add-third-party</goal>
+						</goals>
+					</execution>
+					<!-- Execution 2: Downloads the full text of every license -->
+					<execution>
+						<id>download-full-licenses</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>download-licenses</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
