@@ -23,10 +23,13 @@ public class GatewayExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GatewayExceptionHandler.class);
 
     @ExceptionHandler({ResourceAccessException.class, ConnectException.class})
-    public ResponseEntity<Map<String, String>> upstreamDown(Exception ex, HttpServletRequest req) {
+    public ResponseEntity<Map<String, String>> upstream(Exception ex, HttpServletRequest req) {
         req.setAttribute(AccessLogFilter.LOGGED, true);
-        log.error("UPSTREAM_UNAVAILABLE {} {} cause={}", req.getMethod(), req.getRequestURI(),
-                ex.getClass().getSimpleName(), ex);                 // stack trace, once
+        if (isReadTimeout(ex)) {
+            log.error("UPSTREAM_TIMEOUT {} {} chain={}", req.getMethod(), req.getRequestURI(), chain(ex));
+            return body(HttpStatus.GATEWAY_TIMEOUT, "timeout");
+        }
+        log.error("UPSTREAM_UNAVAILABLE {} {} chain={}", req.getMethod(), req.getRequestURI(), chain(ex), ex);
         return body(HttpStatus.SERVICE_UNAVAILABLE, "service_unavailable");
     }
 
@@ -40,10 +43,37 @@ public class GatewayExceptionHandler {
         return body(HttpStatus.INTERNAL_SERVER_ERROR, "internal_error");
     }
 
+    private static boolean isReadTimeout(Throwable t) {
+        boolean timeout = false;
+        for (int i = 0; t != null && i < 8; i++, t = t.getCause()) {
+            String name = t.getClass().getSimpleName();
+            // any connect failure in the chain means nothing reached the service
+            if (t instanceof java.net.ConnectException || name.contains("Connect")) {
+                return false;
+            }
+            if (t instanceof java.net.SocketTimeoutException
+                    || t instanceof java.net.http.HttpTimeoutException
+                    || name.contains("Timeout")) {
+                timeout = true;
+            }
+        }
+        return timeout;
+    }
+
+    // class names only, so no message text reaches the log
+    private static String chain(Throwable t) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; t != null && i < 6; i++, t = t.getCause()) {
+            if (sb.length() > 0) sb.append(" <- ");
+            sb.append(t.getClass().getSimpleName());
+        }
+        return sb.toString();
+    }
+
     private ResponseEntity<Map<String, String>> body(HttpStatus status, String code) {
         String trace = MDC.get("traceId");
         return ResponseEntity.status(status).body(trace == null
                 ? Map.of("error", code)
-                : Map.of("error", code, "traceId", trace));        // the screen can show "ref ..."
+                : Map.of("error", code, "traceId", trace));
     }
 }
